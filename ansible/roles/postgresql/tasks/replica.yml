@@ -1,0 +1,30 @@
+- name: Зупинити PostgreSQL
+  service:
+    name: postgresql
+    state: stopped
+
+- name: Очистити data dir
+  file:
+    path: /var/lib/postgresql/14/main
+    state: absent
+
+- name: Отримати копію з master
+  become_user: postgres
+  command: >
+    pg_basebackup -h {{ hostvars['server-1']['ansible_host'] }}
+    -D /var/lib/postgresql/14/main -U replicator
+    -Fp -Xs -P -R
+  environment:
+    PGPASSWORD: "replica_pass"
+
+- name: Права на папку
+  file:
+    path: /var/lib/postgresql/14/main
+    owner: postgres
+    group: postgres
+    state: directory
+
+- name: Запустити PostgreSQL
+  service:
+    name: postgresql
+    state: started

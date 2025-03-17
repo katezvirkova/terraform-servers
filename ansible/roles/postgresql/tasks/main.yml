@@ -1,0 +1,13 @@
+- name: Install PostgreSQL
+  apt:
+    name: postgresql
+    update_cache: yes
+    state: present
+
+- name: Include master config
+  include_tasks: master.yml
+  when: "'primary' in group_names"
+
+- name: Include replica config
+  include_tasks: replica.yml
+  when: "'replica' in group_names"

@@ -1,0 +1,27 @@
+- name: Встановити параметри реплікації в postgresql.conf
+  blockinfile:
+    path: /etc/postgresql/14/main/postgresql.conf
+    block: |
+      wal_level = replica
+      max_wal_senders = 10
+      wal_keep_size = 64
+      listen_addresses = '*'
+  notify: Restart PostgreSQL
+
+- name: Дозволити реплікацію в pg_hba.conf
+  lineinfile:
+    path: /etc/postgresql/14/main/pg_hba.conf
+    insertafter: EOF
+    line: "host replication replicator {{ hostvars['server-2']['ansible_host'] }}/32 md5"
+
+- name: Створити користувача для реплікації
+  become_user: postgres
+  postgresql_user:
+    name: replicator
+    password: replica_pass
+    role_attr_flags: REPLICATION,LOGIN
+
+- name: Перезапустити PostgreSQL
+  service:
+    name: postgresql
+    state: restarted
