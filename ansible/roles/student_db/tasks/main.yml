@@ -1,0 +1,8 @@
+- name: Копіювати init.sql
+  copy:
+    src: init.sql
+    dest: /tmp/init.sql
+
+- name: Запустити init.sql
+  become_user: postgres
+  shell: psql -f /tmp/init.sql
